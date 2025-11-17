@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head style="height: 100%;">
+<meta charset="UTF-8">
+<title>ログイン</title>
+<!--リセットＣＳＳ-->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/destyle.css@4.0.0/destyle.min.css">
+<!--Font Awesome(無償版)のアイコン-->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<!-- jQueryがレスポンシブに対応するため必要になるコード...らしい-->
+<!-- 参考：https://job-support.ne.jp/blog/javascript/howto-jquery-->
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<!-- ▽や△のアイコンをCSSで使うためにリンクを貼る -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- ローカルストレージをクリアしてTopページにリダイレクトするJavaScript -->
+<script type="text/javascript">
+	function clearLocalStorageAndRedirect() {
+		// ローカルストレージをクリア
+		localStorage.clear();
+		// 新しいページにリダイレクト
+		window.location.href = "/rakulog/indexQR";
+	}
+</script>
+
+<!--オリジナルＣＳＳ(常に最新のcssを読込むよう工夫)-->
+<script type="text/JavaScript">
+<!--
+   document.write('<link href="/rakulog/css/style.css?ver='+ new Date().getTime() +'" rel="stylesheet" type="text/css">');
+//-->
+</script>
+<!--オリジナルJavaScript(常に最新のcssを読込むよう工夫)-->
+<script type="text/JavaScript">
+<!--
+   document.write('<script src="/rakulog/js/scrDispWorkStatusMobile.js?ver='+ new Date().getTime() +'"></script>');
+//-->
+</script>
+
+
+<!-- 
+	サーバでデプロイする場合、CSS,JavaScript,画像などはドキュメントルート（※）内に配置すること
+	※例
+	  ＣＳＳ    ：/var/www/html/css
+	  JavaScript：/var/www/html/js
+	  画像      ：/var/www/html/images
+ -->
+
+
+ 
+</head>
+<body>
+
+<header class="ymd-header">
+   作業状況確認
+</header>
+<div class="ymd-navigation">
+	<div style="width: 50%;"><a href="javascript:void(0);" onclick="clearLocalStorageAndRedirect()">&lt;&lt; 作業者を変更</a></div>
+	<div style="width: 50%;"><a th:href="@{/rakulog/indexQR}">&lt;&lt; 最初に戻る</a></div>
+</div>
+
+<center>
+<div class="ymd-base-container">
+	<!-- action(呼出しプログラムはボタン押下時にJavaScriptでセットし直す) -->
+	<form name="sendForm" th:action="@{/rakulog/DispWorkStatusMobileClose}" th:object="${formKanriDispWorkStatus}" th:method="post" style="width: 100%;">
+		
+		<!-- ユーザ表示エリア -->
+		
+		<!-- 画面ヘッダメッセージ -->
+		<div class="ymd-container" style="width: 100%;text-align: left;">
+		</div>
+		
+		
+		
+		<br>
+		
+		<!-- 警告メッセージ表示エリア -->
+		<div class="ymd-container" style="color: red;">
+			<span th:text="*{message}" />
+		</div>
+		
+		
+		<!--
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		★
+		★          強制リセット時に表示する確認ダイアログボックス
+		★
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		-->
+		
+		
+		<!-- 確認ダイアログ -->
+		<div id="ymd-confirmOverlay">
+			<div id="ymd-confirmBox">
+				<div class="ymd-container" style="width: 100%;">
+					<span>本当に「完了」にしますか？<br><br>※完了にするとその作業の進捗状況が画面に表示されなくなります。</span>
+				</div>
+				<br>
+				<div class="ymd-button" style="width: 100%;">
+					<a id="btnYes">は　い</a>
+				</div>
+				<br>
+				<div class="ymd-button" style="width: 100%;">
+					<a id="btnNo">いいえ</a>
+				</div>
+			</div>
+		</div>
+		
+		
+		<!--
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		★
+		★          画面上部に表示する”稼働中の作業”
+		★
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		-->
+		
+		<!-- 文言表示エリア -->
+		<div class="ymd-container" style="background-color:rgb(0, 128, 128); color: rgb(255,255,255); width: 100%;">
+			<span>■稼働中の作業</span>
+		</div>
+		
+		<!-- 非表示項目 -->
+		<input type="hidden" id="loginEmployeeId"          th:field="*{loginEmployeeId}" />
+		<input type="hidden" id="loginEmployeeName"        th:field="*{loginEmployeeName}" />
+		<input type="hidden" id="selectedDeviceLabel"      th:field="*{selectedDeviceLabel}" />
+		<input type="hidden" id="editAuthority"            th:field="*{editAuthority}" />
+		
+		
+		<!--_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+		
+		【メモ】
+		当画面の上段「稼働中の作業」には一覧表を複数表示するが、以下のように段々に表示する。
+		※スマホ画面仕様であるため１ブロックずつ段々表示
+		
+				３号隔離[摘花]    
+				[________________]
+				[________________]
+				[________________]
+				[________________]
+				
+				11号隔離[摘花]    
+				[________________]
+				[________________]
+				[________________]
+				[________________]
+				
+				大土耕[ＸＸ]      
+				[________________]
+				[________________]
+				[________________]
+				[________________]
+		
+		そのため↓のdivブロックは基本横並びに表示(display:flex)し、表の折り返しを許可する(flex-wrap: wrap)。
+		
+		_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/-->
+		<div class="ymd-container" style="border: solid; display:flex; flex-wrap: wrap;">
+			
+			<!-- 隠し項目（一覧表で選択した行の情報） -->
+			<input type="hidden" id="selectHouseId"         name="selectHouseId"        />
+			<input type="hidden" id="selectWorkId"          name="selectWorkId"         />
+			<input type="hidden" id="selectColNo"           name="selectColNo"          />
+			<input type="hidden" id="selectStartEmployeeId" name="selectStartEmployeeId"/>
+			<input type="hidden" id="selectStartDateTime"   name="selectStartDateTime"  />
+			
+			<!-- 隠し項目（一覧表で選択した行の情報から組み立てるQRコードの情報 例：rakulogQRData,10001,01,1,1000001） -->
+			<input type="hidden" id="qrcode"                name="qrcode"               />
+			<input type="hidden" id="scrName"               name="scrName"              />
+			
+			
+			<!-- ▼１つの表を表現するブロック▼ -->
+			<div class="ymd-container" name="detail-parent" th:each="list, stat : *{activeWorkLists}" style="display:block; width:calc(100% - 20px); border-bottom: 1px dashed rgb(219, 219, 219); margin-left:10px;">
+					
+					<!-- 一覧表ヘッダ部 -->
+					
+					<div class="ymd-list-headre-container" style="width: 100%; display:flex">
+					    <span th:text="*{activeWorkLists[__${stat.index}__].houseName}" />
+					    【
+					    <span th:text="*{activeWorkLists[__${stat.index}__].workName}" />
+					    】
+					</div>
+					
+					<!-- 強制リセットボタンは管理者のみ表示される -->
+					<th:block th:if="*{administrationAuthority == true}" >
+					<div class="ymd-red-button" style="width: 100%;">
+						<!-- 隠し項目 -->
+						<input type="hidden" name="houseId" th:field="*{activeWorkLists[__${stat.index}__].houseId}" />
+						<input type="hidden" name="workId"  th:field="*{activeWorkLists[__${stat.index}__].workId}" />
+						<a name="reset">完了にする</a>
+					</div>
+					</th:block>
+					
+					<div class="ymd-list-header-text" style="width: 100%; display:flex">
+					    作業開始：
+					    <span th:text="*{#temporals.format(activeWorkLists[__${stat.index}__].firstStartDateTime, 'yyyy/MM/dd HH:mm')}" />
+					</div>
+					
+					<div class="ymd-list-headre-container" style="width: 100%;">
+						<!-- 隠し項目 -->
+						<input type="hidden" name="houseId" th:field="*{activeWorkLists[__${stat.index}__].houseId}" />
+						<input type="hidden" name="workId"  th:field="*{activeWorkLists[__${stat.index}__].workId}" />
+						
+						<!-- 基本は各列固定幅であるが、進捗のみ横幅をブラウザに合わせて可変にする -->
+						<div class="ymd-list-headre-container" style="width: 100%; display:flex">
+						    <div class="ymd-list-header-text" style="width: 70px;">列</div>
+						    <div class="ymd-list-header-text" style="width:120px;">作業者名</div>
+						    <div class="ymd-list-header-text" style="width: calc(100% - 190px);">進捗</div>
+						</div>
+					</div>
+					
+					
+					<!-- 一覧表明細部 -->
+					
+					<!-- 【参考】https://medium-company.com/springboot-thymeleaf-list/ -->
+					<!-- 【参考】https://hitori-goto.com/2021/01/26/springboot-thymeleaf-send-dynamic-table-data/ -->
+					<div class="ymd-list-detail-container" name="detail-workStatus-parent" th:each="listRow, statRow : *{activeWorkLists[__${stat.index}__].activeWorKRows}" style="width: 100%; border-bottom: 1px dashed rgb(219, 219, 219);">
+						
+						<!-- 隠し項目 -->
+						<input type="hidden" name="houseId"         th:field="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].houseId}" />
+						<input type="hidden" name="workId"          th:field="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].workId}" />
+						<input type="hidden" name="colNo"           th:field="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].colNo}" />
+						<input type="hidden" name="startEmployeeId" th:field="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].startEmployeeId}" />
+						<input type="hidden" name="startDateTime"   th:field="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].startDateTime}" />
+						<input type="hidden" name="endDateTime"     th:field="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].endDateTime}" />
+						
+						<!-- 基本は各列固定幅であるが、備考のみ横幅をブラウザに合わせて可変にする -->
+						<div class="ymd-list-detail-container" name="detail-workStatus-row" style="width: 100%; display:flex">
+							<div class="ymd-list-detail-data" style="width: 70px;"><span th:text="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].colNo}" /></div>
+							<div class="ymd-list-detail-data" style="width:120px;"><span th:text="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].startEmployeeName}" /></div>
+							<div class="ymd-list-detail-data" style="width: calc(100% - 190px);">
+								
+								<!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ -->
+								
+								<!-- 進捗率（棒グラフ”風”表示）  -->
+								<!-- percentが空白でない場合の進捗表示 -->
+								<div th:if="*{not #strings.isEmpty(activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].percent)}">
+									<div th:style="'width:' + *{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].percent} + '%; background-color: rgb(153, 181, 221);'">
+									<span th:text="*{activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].percent}" />%
+									</div>
+								</div>
+								<!-- percentが空白である場合の進捗表示 -->
+								<div th:unless="*{not #strings.isEmpty(activeWorkLists[__${stat.index}__].activeWorKRows[__${statRow.index}__].percent)}">
+									<span>－</span>
+								</div>
+								<!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ -->
+							</div>
+						</div>
+					</div>
+			</div>
+			<!-- ▲１つの表を表現するブロック▲ -->
+			
+		</div>
+		
+		
+		
+		<br>
+		
+		<!-- ====================================== -->
+		<!-- 閉じるボタン①   -->
+		<div class="ymd-button" style="width: 100%;">
+			<a name="close">閉じる</a>
+		</div>
+		
+		
+		<br>
+		
+		<!--
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		★
+		★          画面中部に表示する”収穫状況”
+		★
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		-->
+		
+		<!-- 文言表示エリア -->
+		<div class="ymd-container" style="background-color:rgb(0, 128, 128); color: rgb(255,255,255); width: 100%;">
+			<span>■全ハウスの収穫数合計（本シーズン）</span>
+		</div>
+		
+		
+		
+		<!-- 一覧表ヘッダ部 -->
+		<div class="ymd-list-headre-container" style="width: 100%;">
+			
+			<!-- 基本は各列固定幅であるが、備考のみ横幅をブラウザに合わせて可変にする -->
+			<div class="ymd-list-headre-container" style="width: 100%; display:flex">
+				<div class="ymd-list-header-text" style="width: 120px;">ハウス名</div>
+				<div class="ymd-list-header-text" style="width: calc(100% - 120px);">収穫数</div>
+			</div>
+		</div>
+		
+		
+		<!-- 一覧表明細部 -->
+		<div class="ymd-list-detail-container" name="detail-shukakuSum-parent" th:each="list,stat : *{shukakuStatusList}" style="width: 100%; border-bottom: 1px dashed rgb(219, 219, 219);">
+			
+			<!-- 隠し項目 -->
+			<input type="hidden" name="houseId"   th:field="*{shukakuStatusList[__${stat.index}__].houseId}" />
+			
+			<!-- 基本は各列固定幅であるが、備考のみ横幅をブラウザに合わせて可変にする -->
+			<div class="ymd-list-detail-container" name="detail-shukakuSum-row" style="width: 100%; display:flex">
+				<div class="ymd-list-detail-data" style="width: 120px;"><span th:text="*{shukakuStatusList[__${stat.index}__].houseName}" /></div>
+				
+				
+				
+				<!-- 収穫ケース数（棒グラフ”風”表示）  -->
+				<div class="ymd-list-detail-data" style="width: calc(100% - 120px);">
+					<!--
+					★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+					★　　　【メモ】
+					★　　　収穫ケース数のグラフは 4000ケース＝100% としている
+					★　　　※１ハウス１シーズン3000ケース程度収穫しているため(2024/06 松岡さん)
+					★
+					★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+					-->
+					<!-- ケース数が ”100”に満たない場合の表示（数値はグラフの後ろに表示） -->
+					<div th:if="*{shukakuStatusList[__${stat.index}__].caseCount < 100}" style="display:flex;">
+						<div th:style="'width:' + 'calc(' + *{shukakuStatusList[__${stat.index}__].caseCount} / 4000 * 100 + '%); background-color: rgb(153, 181, 221);'">
+						</div>
+						<span th:text="*{shukakuStatusList[__${stat.index}__].caseCount}" />
+					</div>
+					<!-- ケース数が ”100”以上である場合の表示（数値はグラフの中に表示） -->
+					<div th:if="*{shukakuStatusList[__${stat.index}__].caseCount >= 100}" style="display:flex;">
+						<div th:style="'width:' + 'calc(' + *{shukakuStatusList[__${stat.index}__].caseCount} / 4000 * 100 + '%); background-color: rgb(153, 181, 221);'">
+						<span th:text="*{shukakuStatusList[__${stat.index}__].caseCount}" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		
+		
+		<br>
+		
+		<!-- ====================================== -->
+		<!-- 閉じるボタン②   -->
+		<div class="ymd-button" style="width: 100%;">
+			<a name="close">閉じる</a>
+		</div>
+		
+		<br>
+		
+		<!--
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		★
+		★          画面下部に表示する”全ハウス・全作業の稼働状況”
+		★
+		★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		-->
+		
+		<!--_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+		
+		【メモ】
+		スマホの縦長画面に対応し以下のような表示とする(左側のヘッダ部、右側の明細部を各々以下で表示)
+		 __________________________
+		 | ３号隔離    |          |
+		 | 葉かき      |稼働中    |
+		 | 摘花        |30日経過  |
+		 | 摘果        |稼働中    |
+		 | わきめ取り  |－        |
+		 __________________________
+		 __________________________
+		 | ４号隔離    |          |
+		 | 葉かき      |稼働中    |
+		 | 摘花        |30日経過  |
+		 | 摘果        |稼働中    |
+		 | わきめ取り  |－        |
+		 __________________________
+		 
+		_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/-->
+		
+		<!-- 文言表示エリア -->
+		<div class="ymd-container" style="background-color:rgb(0, 128, 128); color: rgb(255,255,255); width: 100%;">
+			<span>■全ハウス・全作業の稼働状況</span>
+		</div>
+		
+		
+		<div class="ymd-container" style="display:flex; flex-wrap: wrap; width: 100%;">
+			<!-- ▼表のヘッダ部(左側)を表現するブロック▼ -->
+			<div class="ymd-container" style="display: block;width: 170px;">
+				<div class="ymd-list-headre-container" name="detail-header-col" th:each="list, stat : *{nonActiveWorkList}" style="display:block; margin-right:3px; width: 100%;">
+					
+					<!-- ▼ハウス名▼ -->
+					<div class="ymd-list-row-header-text" style="background-color:rgb(256,256,256); width: 100%;">
+						<span th:text="*{nonActiveWorkList[__${stat.index}__].houseName}" />
+					</div>
+					
+					<!-- ▼作業名▼ -->
+					<div class="ymd-list-row-header-text" name="detail-header-col" th:each="list, statWork : *{nonActiveWorkListHeader}" style="width: 100%;">
+						<span th:text="*{nonActiveWorkListHeader[__${statWork.index}__]}" />
+					</div>
+					
+				</div>
+			</div>
+			
+			<!-- ▼表の明細部(右側)を表現するブロック▼ -->
+			<div class="ymd-container" style="display: block;width: calc(100%-170px);">
+				<div class="ymd-list-detail-container" name="detail-row" th:each="list, stat : *{nonActiveWorkList}" style="display:block; width:100%;">
+					
+					<!-- ▼表の明細部(１行目)を表現するブロック ※ハウス名の右側は常に空白▼ -->
+					<div class="ymd-list-row-header-text" style="background-color:rgb(256,256,256); font-weight:normal; width: 100%;">
+						<span style="color:rgb(256,256,256);">▼</span>
+					</div>
+					
+					<!-- ▼表の明細部(２行目以降)を表現するブロック▼ -->
+					<div class="ymd-list-row-header-text" th:each="listCol, statCol : *{nonActiveWorkList[__${stat.index}__].nonActiveWorkCol}" style="background-color:rgb(256,256,256); font-weight:normal; width: 100%;">
+						<span th:text="*{nonActiveWorkList[__${stat.index}__].nonActiveWorkCol[__${statCol.index}__].progressDays}" />
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		<br>
+		
+		
+		<!-- ====================================== -->
+		<!-- 閉じるボタン③   -->
+		<div class="ymd-button" style="width: 100%;">
+			<a name="close">閉じる</a>
+		</div>
+		
+	</form>
+	
+	<br>
+	<br>
+	
+</div>
+</center>
+
+</body>
+</html>
