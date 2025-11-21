@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<!-- ▼キャッシュを使わないためのmetaタグ  -->
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Cache-Control" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<!-- ▲キャッシュを使わないためのmetaタグ  -->
-<title>Simple QR Reader Test</title>
+
+<title>ICタグ読込み</title>
+<!--リセットＣＳＳ-->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/destyle.css@4.0.0/destyle.min.css">
+<!--Font Awesome(無償版)のアイコン-->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
 
 
 <!-- ローカルストレージをクリアしてTopページにリダイレクトするJavaScript -->
@@ -21,40 +21,15 @@
 	}
 </script>
 
-<!--オリジナルＣＳＳ(常に最新のcssを読込むよう工夫)-->
-<script type="text/JavaScript">
-<!--
-   document.write('<link href="/rakulog/css/scrReadQRCode.css?ver='+ new Date().getTime() +'" rel="stylesheet" type="text/css">');
-//-->
-</script>
-
-<link
-	rel="apple-touch-icon"
-	sizes="180x180"
-	th:href="@{/images/icons/apple-touch-icon.png}"
-/>
-<link rel="manifest" th:href="@{/rakulog/manifest/scrQRRead-manifest.json}" />
-<link rel="manifest" href="manifest.webmanifest" />
-<!--
-	【メモ】
-	 PWACompatは、manifest.jsonの対応していないブラウザをサポートすることができるGoogle製のライブラリです。 
-	 このライブラリを使用すれば、iOSのためにメタタグを羅列したり、スプラッシュスックリーン用の画像を準備する作業から開放されます。
--->
-<script
-	async
-	src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.9/pwacompat.min.js"
-	integrity="sha384-VcI6S+HIsE80FVM1jgbd6WDFhzKYA0PecD/LcIyMQpT4fMJdijBh0I7Iblaacawc"
-	crossorigin="anonymous"
-></script>
-<script>
-	//windows.navigatorにsw.jsの機能を登録する
-	//【メモ】Service Workerとは
-	//https://qiita.com/y_fujieda/items/f9e765ac9d89ba241154
-	if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.register('/rakulog/js/sw.js')
-	}
-</script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<!-- jQueryがレスポンシブに対応するため必要になるコード...らしい-->
+<!-- 参考：https://job-support.ne.jp/blog/javascript/howto-jquery-->
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<!-- ▽や△のアイコンをCSSで使うためにリンクを貼る -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+
 
 <!--オリジナルＣＳＳ(常に最新のcssを読込むよう工夫)-->
 <script type="text/JavaScript">
@@ -62,58 +37,95 @@
    document.write('<link href="/rakulog/css/style.css?ver='+ new Date().getTime() +'" rel="stylesheet" type="text/css">');
 //-->
 </script>
-	
+
 </head>
 <body>
 	
-	<header class="ymd-header">
-		ＩＣタグ読み取り
-	</header>
-	<div class="ymd-navigation">
-		<div style="width: 50%;"><a href="javascript:void(0);" onclick="clearLocalStorageAndRedirect()">&lt;&lt; 作業者を変更</a></div>
-		<div style="width: 50%;"><a th:href="@{/rakulog/indexQR}">&lt;&lt; 最初に戻る</a></div>
-	</div>
-	<center>
+<header class="ymd-header">
+	ICタグ読取り
+</header>
+<div class="ymd-navigation">
+	<div style="width: 50%;"><a href="javascript:void(0);" onclick="clearLocalStorageAndRedirect()">&lt;&lt; 作業者を変更</a></div>
+	<div style="width: 50%;"><a th:href="@{/rakulog/indexQR}">&lt;&lt; 最初に戻る</a></div>
+</div>
+
+
+<center>
+<div class="ymd-base-container">
 	
 	
 	<!--  -->
 	<form name="registQRForm" th:action="@{/rakulog/TransitionDispQRInfo}" th:object="${formReadQRCode}" th:method="post" style="width: 100%;">
 	
+		
+		<!-- 非表示項目エリア -->
+		<input type="hidden" name="loginEmployeeId"     id="loginEmployeeId"     th:value="*{loginEmployeeId}" />
+		<input type="hidden" name="loginEmployeeName"   id="loginEmployeeName"   th:value="*{loginEmployeeName}" />
+		<input type="hidden" name="selectedDeviceLabel" id="selectedDeviceLabel" th:value="*{selectedDeviceLabel}" />
+		<input type="hidden" name="qrcode"              id="qrcode"              th:value="*{qrcode}" />
+		
 		<div class="ymd-container" style="width: 100%;">
-			<input type="hidden" name="loginEmployeeId"     id="loginEmployeeId"     th:value="*{loginEmployeeId}" />
-			<input type="hidden" name="loginEmployeeName"   id="loginEmployeeName"   th:value="*{loginEmployeeName}" />
-			<input type="hidden" name="selectedDeviceLabel" id="selectedDeviceLabel" th:value="*{selectedDeviceLabel}" />
-			<input type="hidden" name="qrcode"              id="qrcode"              th:value="*{qrcode}" />
+			<center>
+			<h3>ICタグ読取り</h3>
+			</center>
 		</div>
 		
-		<div class="container">
-			<h1>NFCタグ読み取りデモ</h1>
-	
-			<div class="note">
-				・Android の Chrome で開いてください。<br>
-				・HTTPS のページでないと動作しません。<br>
-				・「読み取り開始」ボタンを押したあと、スマホの背面に NFC タグ(NFC 213 など)を近づけてください。
-			</div>
-	
-			<button id="btnStart">読み取り開始</button>
-	
+		<div class="ymd-container" style="width: 100%;">
+			スマホの背面をICタグを近付けてください。
+		</div>
+		
+		<div class="ymd-container" style="height:5px"></div><!--スキ間div-->
+		<!--
+		<div class="ymd-container" style="width: 100%;">
+			ICタグ読取りをキャンセルして前の画面に戻る場合は画面上部の「最初に戻る」を押してください。
+		</div>
+		
+		<br>
+		-->
+		
+		<!-- Gif画像表示 -->
+		<div class="ymd-container" id="gif-animation" style="width: 100%;">
+			<center>
+			<img src="/rakulog/images/gif/ic_tag_scan.gif" alt="" width="90%">
+			</center>
+		</div>
+		
+		
+		<div class="ymd-container" style="height:5px"></div><!--スキ間div-->
+		
+		<!-- ICタグ読込開始ボタン -->
+		<div class="ymd-button" style="width: 100%;">
+			<a id="startNfcBtn"><span>ICタグ読取開始</span></a>
+		</div>
+		
+		<div class="ymd-container" style="height:5px"></div><!--スキ間div-->
+		
+		
+		<div class="ymd-container" id="result-message-area" style="width: 100%;">
 			<div class="status" id="status">
-				状態: まだ読み取りを開始していません。
+			状態: 読取りボタンを押してください。
 			</div>
-	
+		</div>
+		
+		<div class="ymd-container" style="height:5px"></div><!--スキ間div-->
+		
+		<div class="ymd-container" style="width: 100%; color: rgb(128, 128, 128);">
 			<div class="result" id="result">
 			読み取ったタグの内容はここに表示されます。
 			</div>
 		</div>
 		
+		
+		
 	</form>
+</div>
 	
-	<!--オリジナルJavaScript(常に最新を読込むよう工夫)-->
-	<script type="text/JavaScript">
-	<!--
-	   document.write('<script src="/rakulog/js/scrReadQRCode.js?ver='+ new Date().getTime() +'"></script>');
-	//-->
-	</script>
+<!--オリジナルJavaScript(常に最新を読込むよう工夫)-->
+<script type="text/JavaScript">
+<!--
+   document.write('<script src="/rakulog/js/scrReadQRCode.js?ver='+ new Date().getTime() +'"></script>');
+//-->
+</script>
 	
 	
 </body>

@@ -1,20 +1,38 @@
-const btnStart = document.getElementById('btnStart');
-const statusEl = document.getElementById('status');
-const resultEl = document.getElementById('result');
+const statusEl  = document.getElementById('status');
+const resultEl  = document.getElementById('result');
+const startBtn  = document.getElementById('startNfcBtn');
 
+let abortController = null;
+
+//document.addEventListener("DOMContentLoaded", () => {
+//    startNfcReading();   // ← 画面起動時に自動で NFC 読取り開始
+//});
+
+
+// ------------------------------------------------
 // Web NFC 対応チェック
-if (!('NDEFReader' in window)) {
-	statusEl.textContent = '状態: このブラウザは Web NFC(NDEFReader) に対応していません。Android の Chrome で試してください。';
-	btnStart.disabled = true;
-}
+//function isSupportedWebNfc() {
+//  return 'NDEFReader' in window;
+//}
 
-btnStart.addEventListener('click', async () => {
-	// ボタン連打防止
-	btnStart.disabled = true;
+// ------------------------------------------------
+// 開始ボタン押下処理
+startBtn.addEventListener('click', async () => {
 
+	// NFC が使えるかチェック
+	if (!("NDEFReader" in window)) {
+		alert("このスマホはＩＣタグ読み取りに対応していません");
+		return;
+	}
+	
+	// 既存の scan があれば止める
+	//if (abortController) {
+	//	 abortController.abort();
+	//}
+	
 	try {
 		const ndef = new NDEFReader();
-		statusEl.textContent = '状態: NFC 読み取りを開始しました。タグをスマホの背面に近づけてください…';
+		statusEl.textContent = '状態: 読取り待機中...';
 		
 		// スキャン開始
 		await ndef.scan();
@@ -27,6 +45,13 @@ btnStart.addEventListener('click', async () => {
 			log += `タグ検出: シリアル番号 = ${serialNumber}\n`;
 			log += '--- レコード一覧 ---\n';
 			
+			var readindTextRecord = "";
+			
+			// １つのNFCタグに複数のレコード（※）が入っている可能性があるためLOOP処理
+			// ※NDEFメッセージ
+			//   +レコード１(例：テキスト)
+			//   +レコード２(例：URL)
+			//   +レコード３(例：画像などのバイナリデータ)
 			for (const record of message.records) {
 				log += `recordType: ${record.recordType}\n`;
 				log += `mediaType : ${record.mediaType ?? '(なし)'}\n`;
@@ -36,6 +61,10 @@ btnStart.addEventListener('click', async () => {
 					const textDecoder = new TextDecoder(record.encoding || "utf-8");
 					const text = textDecoder.decode(record.data);
 					log += `text      : ${text}\n`;
+					
+					// ■本システムではテキストのみを想定。取得したらLOOP脱出。
+					readindTextRecord = text;
+					break;
 				}
 				// URL レコード
 				else if (record.recordType === "url") {
@@ -54,11 +83,10 @@ btnStart.addEventListener('click', async () => {
 			}
 			
 			resultEl.textContent = log;
-			statusEl.textContent = '状態: 読み取りに成功しました。もう一度読む場合は「読み取り開始」を押してください。';
-			btnStart.disabled = false;
+			statusEl.textContent = '状態: 読み取りに成功しました。';
 			
 			// 読取った内容をセットしてサーバ処理起動
-			qrcode.value = log
+			qrcode.value = readindTextRecord
 			
 			
 			// ローカルストレージに画面表示「許可」の状態を書き込む 
@@ -94,16 +122,11 @@ btnStart.addEventListener('click', async () => {
 		// エラー時（ユーザーがキャンセルした / 権限拒否など）
 		ndef.addEventListener("readingerror", () => {
 			statusEl.textContent = '状態: タグを読み取れませんでした。もう一度かざしてみてください。';
-			btnStart.disabled = false;
 		});
-		
-		
-		
 		
 	} catch (err) {
 		console.error(err);
 		statusEl.textContent = `状態: エラーが発生しました: ${err.message}`;
-		btnStart.disabled = false;
 	}
 });
 
