@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,8 @@ public class NightBatch {
 	
 	private String classId = "NightBatch";
 	
-	@Scheduled(cron = "45 59 00 * * *") // 毎日00時59分45秒に実行
+	//★夜間バッチが起動しないように↓１行をコメントアウト
+	//@Scheduled(cron = "45 59 00 * * *") // 毎日00時59分45秒に実行
 	@Transactional(rollbackFor = {Exception.class, SQLException.class})
 	public void runNightBatch() {
 		
